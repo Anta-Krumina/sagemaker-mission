@@ -1,0 +1,8 @@
+pytest
+
+aws-cdk.core==1.87.1
+aws-cdk.cloudformation_include==1.87.1
+aws-cdk.aws_iam==1.87.1
+aws-cdk.aws_ec2==1.87.1
+sagemaker>=2.214.0
+boto3

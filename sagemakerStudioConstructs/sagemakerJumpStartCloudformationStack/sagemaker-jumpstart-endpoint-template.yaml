@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  JumpStartModelPackageArn:
+    Type: String
+    Description: JumpStart model package to deploy
+    # Default: "arn:aws:sagemaker:eu-central-1:865070037744:model-package/autogluon-forecasting-chronos-bolt-small"
+    Default: "arn:aws:sagemaker:eu-central-1:865070037744:model-package/huggingface-eqa-distilbert-base-cased" 
+  InstanceType:
+    Type: String
+    Default: "ml.m5.large"
+
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+
+  JumpStartModel:
+    Type: AWS::SageMaker::Model
+    Properties:
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      PrimaryContainer:
+        ModelPackageName: !Ref JumpStartModelPackageArn
+
+  JumpStartEndpointConfig:
+    Type: AWS::SageMaker::EndpointConfig
+    Properties:
+      ProductionVariants:
+        - InitialInstanceCount: 1
+          InitialVariantWeight: 1.0
+          InstanceType: !Ref InstanceType
+          ModelName: !Ref JumpStartModel
+          VariantName: "AllTraffic"
+
+  JumpStartEndpoint:
+    Type: AWS::SageMaker::Endpoint
+    Properties:
+      EndpointConfigName: !Ref JumpStartEndpointConfig
+      EndpointName: !Sub "jumpstart-endpoint-${AWS::StackName}"
